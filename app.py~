@@ -1,0 +1,117 @@
+from flask import Flask, render_template, request
+
+app = Flask(__name__)
+import xml.etree.cElementTree as ET
+
+from database_details import *
+
+ele = []
+
+def open_db_connection():
+    """ Open a database connection """
+    db_conn = MySQLdb.connect(host, user=user, port=port, \
+                              passwd=password, db=dbname)
+    cur = db_conn.cursor()
+    return cur,db_conn
+
+
+@app.route("/")
+def  index():
+    """ This is first page """
+    return "index page"
+
+
+@app.route("/back_to_index")
+def back_to_index():
+    """ Open change password page """
+    return render_template('index.html')
+
+
+@app.route("/addsport/<add_sport>")
+def addsportname(add_sport):
+    """ This is first page """
+    #add_sport = request.form.get('text_value')
+    if not add_sport:
+        return "Error"
+    else:
+    #The received function is always in unicode format
+        #cur, conn= open_db_connection()
+        #cur.execute("INSERT INTO sports (sportname) VALUES (%s)", (add_sport, ))
+        #conn.commit()
+        ele.append(add_sport)
+        xml_format = '<sports>'
+        root = ET.Element("sports")
+        for i in ele:
+            ET.SubElement(root, "sport").text = i
+        tree = ET.ElementTree(root)
+        tree.write("read_file.xml")
+        return render_template('back.html', display_message="added successfully")
+
+
+
+##@app.route("/readsport")
+##def readsportname():
+##    """ This is first page """
+##    #The received function is always in unicode format
+##    #cur, conn= open_db_connection()
+##    #cur.execute("SELECT sportname from sports")
+##    reg_data = cur.fetchall() #values in tuple
+##    xml_format = '<sports>'
+##    root = ET.Element("sports")
+##    for i in reg_data:
+##        ET.SubElement(root, "sport").text = i[0]
+##    tree = ET.ElementTree(root)
+##    tree.write("read_file.xml")
+##    return render_template('back.html', display_message="xml created")
+
+
+
+@app.route("/updatesport/<old_sport>/<update_sport>")
+def updatesportname(old_sport,update_sport):
+    """ This is first page """
+    #The received function is always in unicode format
+    #old_sport = request.form.get('old_value')
+    #update_sport = request.form.get('new_value')
+    if not old_sport and not update_sport:
+        return "Error"
+    else:
+        #cur, conn= open_db_connection()
+        #cur.execute("UPDATE sports SET sportname=(%s) where sports.sportname=(%s)", (update_sport, old_sport))
+        #conn.commit()
+        if old_sport in ele:
+            ele.remove(old_sport)
+            ele.append(update_sport)
+        xml_format = '<sports>'
+        root = ET.Element("sports")
+        for i in ele:
+            ET.SubElement(root, "sport").text = i
+        tree = ET.ElementTree(root)
+        tree.write("read_file.xml")
+        return render_template('back.html', display_message="updated successfully")
+
+
+
+@app.route("/deletesport/<delete_sport>")
+def deletesportname(delete_sport):
+    """ This is first page """
+    #The received function is always in unicode format
+    #delete_sport = request.form.get('delete_value')
+    if not delete_sport:
+        return "Error"
+    else:
+        #cur, conn= open_db_connection()
+        #cur.execute("DELETE from sports where sportname=(%s)", (delete_sport, ))
+        #conn.commit()
+        if delete_sport in ele:
+            ele.remove(delete_sport)
+        xml_format = '<sports>'
+        root = ET.Element("sports")
+        for i in ele:
+            ET.SubElement(root, "sport").text = i
+        tree = ET.ElementTree(root)
+        tree.write("read_file.xml")
+        return render_template('back.html', display_message="deleted successfully")
+
+
+if __name__ == "__main__":
+    app.run(debug = True)
